@@ -26,8 +26,9 @@ import org.mozilla.fenix.ext.getDefaultCollectionNumber
  * then a new collection is created.
  *
  * A list of [TabSessionState] is returned that will be put into the collections storage.
+ * TODO ROGER
  */
-typealias OnPositiveButtonClick = (collection: TabCollection?) -> List<TabSessionState>
+typealias OnPositiveButtonClick = (id: Long?, isNewCollection: Boolean) -> Unit
 
 /**
  * A lambda that is invoked when a cancel button in a [CollectionsDialog] is clicked.
@@ -42,6 +43,7 @@ typealias OnNegativeButtonClick = () -> Unit
  */
 data class CollectionsDialog(
     val storage: TabCollectionStorage,
+    val sessionList: List<TabSessionState>,
     val onPositiveButtonClick: OnPositiveButtonClick,
     val onNegativeButtonClick: OnNegativeButtonClick
 )
@@ -67,10 +69,10 @@ fun CollectionsDialog.show(
             val selectedCollection =
                 (list.adapter as CollectionsListAdapter).getSelectedCollection()
             val collection = storage.cachedTabCollections[selectedCollection]
-            val sessionList = onPositiveButtonClick.invoke(collection)
 
             MainScope().launch {
-                storage.addTabsToCollection(collection, sessionList)
+                val id = storage.addTabsToCollection(collection, sessionList)
+                onPositiveButtonClick.invoke(id, false)
             }
 
             dialog.dismiss()
@@ -112,13 +114,13 @@ internal fun CollectionsDialog.showAddNewDialog(
     AlertDialog.Builder(context)
         .setTitle(R.string.tab_tray_add_new_collection)
         .setView(layout).setPositiveButton(android.R.string.ok) { dialog, _ ->
-            val sessionList = onPositiveButtonClick.invoke(null)
 
             MainScope().launch {
-                storage.createCollection(
+                val id = storage.createCollection(
                     collectionNameEditText.text.toString(),
                     sessionList
                 )
+                onPositiveButtonClick.invoke(id, true)
             }
 
             dialog.dismiss()

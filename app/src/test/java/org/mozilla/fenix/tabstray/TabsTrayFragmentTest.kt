@@ -7,6 +7,7 @@ package org.mozilla.fenix.tabstray
 import android.content.Context
 import android.view.View
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -41,6 +42,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mozilla.fenix.NavGraphDirections
 import org.mozilla.fenix.R
+import org.mozilla.fenix.components.FenixSnackbar
+import org.mozilla.fenix.components.FenixSnackbar.Companion.LENGTH_LONG
 import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.components.metrics.MetricController
 import org.mozilla.fenix.ext.components
@@ -343,5 +346,29 @@ class TabsTrayFragmentTest {
         fragment.dismissTabsTray()
 
         verify { fragment.dismissAllowingStateLoss() }
+    }
+
+    @Test
+    fun `WHEN showCollectionSnackbar is called with new tab button visible THEN an appropriate snackbar is shown`() {
+        val snackbar: FenixSnackbar = mockk(relaxed = true)
+        val parent: FrameLayout = mockk(relaxed = true)
+
+        every { view.parent } returns parent
+        every {
+            FenixSnackbar.make(view, LENGTH_LONG, isDisplayedWithBrowserToolbar = true)
+        } returns snackbar
+        every { snackbar.setAnchorView(view) } returns snackbar
+        every { snackbar.setText(any()) } returns snackbar
+        every { snackbar.setAction(any(), any()) } returns snackbar
+
+        val newTabButton: ExtendedFloatingActionButton = mockk {
+            every { visibility } returns View.VISIBLE
+        }
+        every { fragment.new_tab_button } returns newTabButton
+        every { fragment.context } returns testContext // needed for getString()
+
+        fragment.showCollectionSnackbar(1, true, 2)
+
+        verify { snackbar.show() }
     }
 }

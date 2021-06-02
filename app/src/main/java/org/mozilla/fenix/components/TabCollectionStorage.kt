@@ -59,15 +59,23 @@ class TabCollectionStorage(
         }
     }
 
-    suspend fun createCollection(title: String, sessions: List<TabSessionState>) = ioScope.launch {
-        val id = collectionStorage.createCollection(title, sessions)
-        notifyObservers { onCollectionCreated(title, sessions, id) }
-    }.join()
+    suspend fun createCollection(title: String, sessions: List<TabSessionState>): Long? {
+        var id: Long? = null
+        ioScope.launch {
+            id = collectionStorage.createCollection(title, sessions)
+            notifyObservers { onCollectionCreated(title, sessions, id) }
+        }.join()
+        return id
+    }
 
-    suspend fun addTabsToCollection(tabCollection: TabCollection, sessions: List<TabSessionState>) = ioScope.launch {
-        collectionStorage.addTabsToCollection(tabCollection, sessions)
-        notifyObservers { onTabsAdded(tabCollection, sessions) }
-    }.join()
+    suspend fun addTabsToCollection(tabCollection: TabCollection, sessions: List<TabSessionState>): Long? {
+        var id: Long? = null
+        ioScope.launch {
+            id = collectionStorage.addTabsToCollection(tabCollection, sessions)
+            notifyObservers { onTabsAdded(tabCollection, sessions) }
+        }.join()
+        return id
+    }
 
     fun getCollections(): LiveData<List<TabCollection>> {
         return collectionStorage.getCollections().asLiveData()
