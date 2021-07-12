@@ -356,6 +356,7 @@ class BookmarkFragment : LibraryPageFragment<BookmarkNode>(), UserInteractionHan
     override fun onDestroyView() {
         super.onDestroyView()
         _bookmarkInteractor = null
+        sharedViewModel.selectedFolder = null
     }
 
     private fun showRemoveFolderDialog(selected: Set<BookmarkNode>) {
